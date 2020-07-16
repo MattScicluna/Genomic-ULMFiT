@@ -8,6 +8,28 @@ from Bio.SeqFeature import FeatureLocation, CompoundLocation
 import networkx as nx
 import seaborn as sns
 
+
+class GenomicTokenizer(BaseTokenizer):
+    def __init__(self, lang='en', ngram=5, stride=2):
+        self.lang = lang
+        self.ngram = ngram
+        self.stride = stride
+        
+    def tokenizer(self, t):
+        t = t.upper()
+        if self.ngram == 1:
+            toks = list(t)
+        else:
+            toks = [t[i:i+self.ngram] for i in range(0, len(t), self.stride) if len(t[i:i+self.ngram]) == self.ngram]
+        if len(toks[-1]) < self.ngram:
+            toks = toks[:-1]
+        
+        return toks
+    
+    def add_special_cases(self, toks):
+        pass
+
+
 def process_fasta(fname, c1, c2, filter_txt=None):
     genome = SeqIO.parse(fname, 'fasta')
     if filter_txt:
@@ -203,7 +225,7 @@ def get_model_clas(data, drop_mult, config, lin_ftrs=None, ps=None, bptt=70, max
     ps = [config.pop('output_p')] + ps
     encoder = MultiBatchEncoder(bptt, max_len, AWD_LSTM(vocab_size, **config))
     model = SequentialRNN(encoder, PoolingLinearClassifier(layers, ps))
-    
+
     learn = RNNLearner(data, model, split_func=awd_lstm_clas_split, wd=wd, clip=clip)
     
     return learn
