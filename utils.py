@@ -1,5 +1,25 @@
+import os
+import sys
+from pathlib import Path
+import pandas as pd
+import numpy as np
+from typing import Callable
+import collections
+from collections import Counter
+
 from fastai import *
-from fastai.text import *
+from fastai.text import ( BaseTokenizer, Tokenizer, Vocab, 
+                         PreProcessor, ItemList, PathOrStr, 
+                         DataFrame, Optional, Collection, 
+                         IntsOrStrs, DataBunch, is_listy, 
+                         ItemLists, TextList, SortishSampler, 
+                         DataLoader, SortSampler, partial, 
+                         pad_collate, TextLMDataBunch, data_collate, 
+                         LanguageModelPreLoader, TextClasDataBunch, ifnone, 
+                         is1d, AWD_LSTM, 
+                         LinearDecoder, SequentialRNN, LanguageLearner, 
+                         RNNLearner, awd_lstm_lm_split )
+
 from Bio import Seq
 from Bio.Seq import Seq
 from Bio import SeqIO
