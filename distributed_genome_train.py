@@ -29,7 +29,7 @@ def main(args):
 
     path = Path('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/')
     df = pd.read_csv(path/'bacterial_data.csv')
-    df = df[:100]
+    #df = df[:100] # for testing purposes
 
     # 10% of the data used for validation
     train_df, valid_df = split_data(df, 0.9)
@@ -39,10 +39,11 @@ def main(args):
     data = GenomicTextLMDataBunch.from_df(path, train_df, valid_df, bs=800, tokenizer=tok, text_cols=0, label_cols=1)
 
     # Save model vocabulary - this will be important later
-    np.save(path/'bact_vocab.npy', data.vocab.itos)
+    if args.local_rank == 0:
+        np.save(path/'bact_vocab.npy', data.vocab.itos)
 
-    #voc = np.load(path/'bact_vocab.npy')
-    voc = data.vocab.itos  # TEMPORARY HACK SO THIS WORKS DISTRIBUTED (usually use above line)
+    voc = np.load(path/'bact_vocab.npy')
+    #voc = data.vocab.itos  # TEMPORARY HACK SO THIS WORKS DISTRIBUTED (usually use above line)
     
     model_vocab = GenomicVocab(voc)
 
@@ -59,18 +60,21 @@ def main(args):
     
     # in order to run this, need to add to line 32 of fastai.distributed
     # see here: https://github.com/fastai/fastai/issues/2148
-    learn.lr_find()
+    #if args.local_rank == 0:
+    learn.lr_find(num_it=100) # usually 100
     #learn.recorder.plot()
 
     learn.fit_one_cycle(5, 1e-2, moms=(0.8,0.7))
-
-    learn.save('b1', return_path=True)
+    
+    if args.local_rank == 0:
+        learn.save('b1', return_path=True)
 
     learn.fit_one_cycle(5, 5e-3, moms=(0.8,0.7))
+    
+    if args.local_rank == 0:
+        learn.save('b2', return_path=True)
 
-    learn.save('b2', return_path=True)
-
-    learn.save_encoder('b2_enc', return_path=True)
+        learn.save_encoder('b2_enc')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
