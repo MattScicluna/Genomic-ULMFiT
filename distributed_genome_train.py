@@ -29,14 +29,16 @@ def main(args):
 
     path = Path('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/')
     df = pd.read_csv(path/'bacterial_data.csv')
-    #df = df[:100] # for testing purposes
+    #df = df[:500] # for testing purposes
+    
+    batch_size = 800
 
     # 10% of the data used for validation
     train_df, valid_df = split_data(df, 0.9)
 
     tok = Tokenizer(GenomicTokenizer, n_cpus=1, pre_rules=[], post_rules=[], special_cases=['xxpad'])
 
-    data = GenomicTextLMDataBunch.from_df(path, train_df, valid_df, bs=800, tokenizer=tok, text_cols=0, label_cols=1)
+    data = GenomicTextLMDataBunch.from_df(path, train_df, valid_df, bs=batch_size, tokenizer=tok, text_cols=0, label_cols=1)
 
     # Save model vocabulary - this will be important later
     if args.local_rank == 0:
@@ -47,7 +49,7 @@ def main(args):
     
     model_vocab = GenomicVocab(voc)
 
-    data = GenomicTextLMDataBunch.from_df(path, train_df, valid_df, bs=800, tokenizer=tok, vocab=model_vocab,
+    data = GenomicTextLMDataBunch.from_df(path, train_df, valid_df, bs=batch_size, tokenizer=tok, vocab=model_vocab,
                                   chunksize=80000, text_cols=0, label_cols=1)
 
     config = dict(emb_sz=400, n_hid=1150, n_layers=3, pad_token=0, qrnn=False, output_p=0.25, 
@@ -60,9 +62,11 @@ def main(args):
     
     # in order to run this, need to add to line 32 of fastai.distributed
     # see here: https://github.com/fastai/fastai/issues/2148
-    #if args.local_rank == 0:
     learn.lr_find(num_it=100) # usually 100
-    #learn.recorder.plot()
+    
+    if args.local_rank == 0:
+        graph=learn.recorder.plot(return_fig=True)
+        graph.savefig('loss-{}.png'.format(args.local_rank))
 
     learn.fit_one_cycle(5, 1e-2, moms=(0.8,0.7))
     
