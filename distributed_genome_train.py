@@ -6,7 +6,7 @@ import os
 import argparse
 
 # sets device for model and PyTorch tensors (-1 = CPU)
-os.environ["CUDA_VISIBLE_DEVICES"]="0,2,3,4"
+os.environ["CUDA_VISIBLE_DEVICES"]="0,2,3,4,5"
 
 from fastai import *
 from fastai.text import *
@@ -29,9 +29,11 @@ def main(args):
 
     path = Path('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/')
     df = pd.read_csv(path/'bacterial_data.csv')
-    #df = df[:500] # for testing purposes
-    
-    batch_size = 800
+    print(df.shape)
+    #df = df[:1000] # for testing purposes
+
+    # 800
+    batch_size = 1200
 
     # 10% of the data used for validation
     train_df, valid_df = split_data(df, 0.9)
@@ -62,21 +64,27 @@ def main(args):
     
     # in order to run this, need to add to line 32 of fastai.distributed
     # see here: https://github.com/fastai/fastai/issues/2148
-    learn.lr_find(num_it=100) # usually 100
+    #learn.lr_find(num_it=200) # usually 100
     
-    if args.local_rank == 0:
-        graph=learn.recorder.plot(return_fig=True)
-        graph.savefig('loss-{}.png'.format(args.local_rank))
-
-    learn.fit_one_cycle(5, 1e-2, moms=(0.8,0.7))
+    #if args.local_rank == 0:
+    #    graph=learn.recorder.plot(return_fig=True)
+    #    graph.savefig('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/models/new_bact_model_train/loss_lr-{}.png'.format(args.local_rank))
+    
+    # 1e-2, 5 eopochs
+    learn.fit_one_cycle(10, 1e-4, moms=(0.8,0.7))
     
     if args.local_rank == 0:
         learn.save('b1', return_path=True)
-
-    learn.fit_one_cycle(5, 5e-3, moms=(0.8,0.7))
+        graph=learn.recorder.plot_losses(return_fig=True)
+        graph.savefig('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/models/new_bact_model_train/losses_round_1.png'.format(args.local_rank))
+    
+    # 5e-3, 5 epochs
+    learn.fit_one_cycle(10, 5e-5, moms=(0.8,0.7))
     
     if args.local_rank == 0:
         learn.save('b2', return_path=True)
+        graph=learn.recorder.plot_losses(return_fig=True)
+        graph.savefig('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/models/new_bact_model_train/losses_round_2.png'.format(args.local_rank))
 
         learn.save_encoder('b2_enc')
 

@@ -18,7 +18,8 @@ from fastai.text import ( BaseTokenizer, Tokenizer, Vocab,
                          LanguageModelPreLoader, TextClasDataBunch, ifnone, 
                          is1d, AWD_LSTM, 
                          LinearDecoder, SequentialRNN, LanguageLearner, 
-                         RNNLearner, awd_lstm_lm_split )
+                         RNNLearner, awd_lstm_lm_split, MultiBatchEncoder, 
+                         PoolingLinearClassifier, awd_lstm_clas_split )
 
 from Bio import Seq
 from Bio.Seq import Seq
@@ -27,6 +28,8 @@ from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import FeatureLocation, CompoundLocation
 import networkx as nx
 import seaborn as sns
+
+import torch
 
 
 class GenomicTokenizer(BaseTokenizer):
