@@ -71,22 +71,32 @@ def main(args):
     #    graph.savefig('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/models/new_bact_model_train/loss_lr-{}.png'.format(args.local_rank))
     
     # 1e-2, 5 eopochs
-    learn.fit_one_cycle(10, 1e-4, moms=(0.8,0.7))
+    learn.fit_one_cycle(7, 1e-4, moms=(0.8,0.7))
     
     if args.local_rank == 0:
         learn.save('b1', return_path=True)
         graph=learn.recorder.plot_losses(return_fig=True)
-        graph.savefig('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/models/new_bact_model_train/losses_round_1.png'.format(args.local_rank))
+        graph.savefig('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/models/bact_model_2/losses_round_1.png'.format(args.local_rank))
     
     # 5e-3, 5 epochs
-    learn.fit_one_cycle(10, 5e-5, moms=(0.8,0.7))
+    learn.fit_one_cycle(7, 5e-5, moms=(0.8,0.7))
     
     if args.local_rank == 0:
         learn.save('b2', return_path=True)
         graph=learn.recorder.plot_losses(return_fig=True)
-        graph.savefig('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/models/new_bact_model_train/losses_round_2.png'.format(args.local_rank))
+        graph.savefig('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/models/bact_model_2/losses_round_2.png'.format(args.local_rank))
 
         learn.save_encoder('b2_enc')
+    
+    # 5e-3, 5 epochs
+    learn.fit_one_cycle(7, 5e-6, moms=(0.8,0.7))
+    
+    if args.local_rank == 0:
+        learn.save('b3', return_path=True)
+        graph=learn.recorder.plot_losses(return_fig=True)
+        graph.savefig('/mnt/wd_4tb/shared_disk_wd4tb/mattscicluna/data/genomic_ulmfit/bacterial_genomes/models/bact_model_2/losses_round_3.png'.format(args.local_rank))
+
+        learn.save_encoder('b3_enc')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

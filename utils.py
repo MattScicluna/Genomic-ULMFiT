@@ -37,7 +37,7 @@ class GenomicTokenizer(BaseTokenizer):
         self.lang = lang
         self.ngram = ngram
         self.stride = stride
-        
+
     def tokenizer(self, t):
         t = t.upper()
         if self.ngram == 1:
@@ -46,9 +46,9 @@ class GenomicTokenizer(BaseTokenizer):
             toks = [t[i:i+self.ngram] for i in range(0, len(t), self.stride) if len(t[i:i+self.ngram]) == self.ngram]
         if len(toks[-1]) < self.ngram:
             toks = toks[:-1]
-        
+
         return toks
-    
+
     def add_special_cases(self, toks):
         pass
 
